@@ -120,7 +120,6 @@ graph.search = function(text) {
       model.data.nodes.push(date);
       model.link(date, entry)
 
-
     });
     graph.update();
   });
