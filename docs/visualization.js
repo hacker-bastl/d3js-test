@@ -36,7 +36,8 @@ var graph = new function() {
   var root = d3.select('svg').attr('x', 0).attr('y', 0).attr('width', window.innerWidth).attr('height', window.innerHeight);
   var canvas = root.append('g').attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')');
   d3.select(window).on('resize', function() {
-    canvas.attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')'); // TODO: get and set zoom here!?
+    canvas.attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')');
+    // TODO: get and set zoom here!?
     root.attr('width', window.innerWidth).attr('height', window.innerHeight);
   });
   this.links = canvas.selectAll('line');
