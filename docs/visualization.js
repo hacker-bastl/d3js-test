@@ -144,33 +144,35 @@ window.addEventListener('load', function() {
   });
 });
 
-d3.json('//api.github.com/events', function(error, events) {
-  if (!!error) throw error;
-  events.forEach(function(event) {
+window.addEventListener('load', function() {
+  d3.json('//api.github.com/events', function(error, events) {
+    if (!!error) throw error;
+    events.forEach(function(event) {
 
-    event.name = event.type;
-    model.data.nodes.push(event);
+      event.name = event.type;
+      model.data.nodes.push(event);
 
-    var date = {
-      id: event.created_at.substring(0, 10)
-    };
+      var date = {
+        id: event.created_at.substring(0, 10)
+      };
 
-    model.data.nodes.push(date);
-    model.link(date, event)
+      model.data.nodes.push(date);
+      model.link(date, event)
 
-    model.data.nodes.push(event.actor);
-    model.link(event.actor, event)
+      model.data.nodes.push(event.actor);
+      model.link(event.actor, event)
 
-    model.data.nodes.push(event.repo);
-    model.link(event.repo, event)
+      model.data.nodes.push(event.repo);
+      model.link(event.repo, event)
 
-    if (!!event.org)
-      model.link(event.repo, event.org)
+      if (!!event.org)
+        model.link(event.repo, event.org)
 
-    event.payload.name = event.payload.action;
-    model.data.nodes.push(event.payload);
-    model.link(event.payload, event)
+      event.payload.name = event.payload.action;
+      model.data.nodes.push(event.payload);
+      model.link(event.payload, event)
 
+    });
+    graph.update();
   });
-  graph.update();
 });
