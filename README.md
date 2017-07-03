@@ -1,0 +1,3 @@
+- D3 is BSD3 license: https://github.com/d3/d3/blob/master/LICENSE
+- using D3 force layout: https://github.com/d3/d3-force/#d3-force
+- testing the GitHub APIs: https://developer.github.com/v3/git/
