@@ -31,7 +31,6 @@ var model = new function() {
 };
 
 // https://bl.ocks.org/mbostock/1095795 / GPLv3
-
 var graph = new function() {
 
   var root = d3.select('svg').attr('x', 0).attr('y', 0).attr('width', window.innerWidth).attr('height', window.innerHeight);
