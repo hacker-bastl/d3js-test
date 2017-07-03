@@ -1,21 +1,24 @@
 var githubModel = {
-
   network: {
     ids: new Map(),
     nodes: [],
     links: [],
   },
 
-  unique: function(data) {
+  unique: function(data, type) {
     if (!data.id) {
       console.warn(data);
       console.error('data id missing');
       data.id = String(Math.random()).slice(-8);
     }
+
+    if (!!type) data.type = type;
+    if (!data.type) data.type = 'unknown';
+
     if (githubModel.network.ids.has(data.id)) {
       // TODO: performance here? refactor?
       var existing = githubModel.network.ids.get(data.id);
-      for (var key in data) existing[key] = data[key];
+      // for (var key in data) existing[key] = data[key];
       return existing;
     } else {
       githubModel.network.ids.set(data.id, data);
@@ -24,12 +27,21 @@ var githubModel = {
     }
   },
 
-  connection: function(data) {
+  connection: function(data, type) {
     var connection = {
-      source: githubModel.unique(data),
-      connect: function(other) {
+      source: githubModel.unique(data, type),
+      timestamp: function(timestamp) {
+        var date = (timestamp || 'unknown').substring(0, 10);
+        if (date.length != 10) console.warn(timestamp); // TODO
+        var node = githubModel.unique({
+          name: date,
+          id: date,
+        }, 'date');
+        return connection.connect(node);
+      },
+      connect: function(data, type) {
         githubModel.network.links.push({
-          target: githubModel.unique(other),
+          target: githubModel.unique(data, type),
           source: connection.source,
         });
         return connection;
@@ -43,35 +55,38 @@ var githubModel = {
       delete(githubModel.network.links.pop());
     while (githubModel.network.nodes.length > 0)
       delete(githubModel.network.nodes.pop());
+    githubModel.network.ids.clear();
     return githubModel;
   },
 
   repository: function(data) {
-    data.type = 'repo'; // TODO?
-    var repo = githubModel.connection(data);
+    var repo = githubModel.connection(data, 'repo');
 
-    repo.connect({
-      id: (data.updated_at || data.created_at).substring(0, 10),
-    });
+    repo.timestamp(data.updated_at || data.created_at);
 
-    repo.connect(data.owner);
+    data.owner.name = data.owner.login;
+    repo.connect(data.owner, 'user');
+    return repo;
   },
 
   event: function(data) {
-    var event = githubModel.connection(data);
+    var event = githubModel.connection(data, 'event');
 
-    event.connect({
-      id: (data.updated_at || data.created_at).substring(0, 10),
-    });
+    event.timestamp(data.updated_at || data.created_at);
 
-    if (!!data.actor)
-      event.connect(data.actor);
+    if (!!data.actor) {
+      data.actor.name = data.actor.login;
+      event.connect(data.actor, 'user');
+    }
     if (!!data.repo)
-      event.connect(data.repo);
-    if (!!data.org)
-      event.connect(data.org);
+      event.connect(data.repo, 'repo');
+    if (!!data.org) {
+      data.org.name = data.org.login;
+      event.connect(data.org, 'orga');
+    }
     //    if (!!data.payload)
     //      event.connect(data.payload);
+    return event;
   },
 };
 
@@ -80,16 +95,18 @@ var networkGraph = new function() {
 
   var root = d3.select('svg').attr('x', 0).attr('y', 0).attr('width', window.innerWidth).attr('height', window.innerHeight);
   var canvas = root.append('g').attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')');
-  var zoon = 1; // TODO: smells...
+  var zoom = 1; // TODO: smells...
+
+  this.links = canvas.selectAll('line');
+  this.nodes = canvas.selectAll('g');
+
+  // http://bl.ocks.org/aaizemberg/78bd3dade9593896a59d
+  this.color = d3.scaleOrdinal(d3.schemeCategory20c);
 
   d3.select(window).on('resize', function() {
     canvas.attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ') scale(' + zoom + ')');
     root.attr('width', window.innerWidth).attr('height', window.innerHeight);
   });
-
-  this.links = canvas.selectAll('line');
-  this.nodes = canvas.selectAll('g');
-  this.color = d3.scaleOrdinal(d3.schemeCategory10);
 
   // https://github.com/d3/d3-zoom#zoom
   root.call(d3.zoom().scaleExtent([0.2, 2.0]).on('zoom', function() {
@@ -121,16 +138,6 @@ networkGraph.layout = d3.forceSimulation(githubModel.network.nodes)
     });
   });
 
-networkGraph.click = function(node) {
-
-  // TODO: "expand" data
-  console.info(node);
-
-  // TODO: upen html_url if present?
-  if (d3.event.shiftKey)
-  ;
-};
-
 // https://bl.ocks.org/mbostock/3808218
 networkGraph.update = function() {
   networkGraph.nodes = networkGraph.nodes.data(githubModel.network.nodes, function(d) {
@@ -139,16 +146,16 @@ networkGraph.update = function() {
   networkGraph.nodes.exit().remove();
   networkGraph.nodes = networkGraph.nodes.enter().append('g').merge(networkGraph.nodes);
 
-  networkGraph.nodes.on('click', networkGraph.click);
-
   // TODO: use avatar instead?
   networkGraph.nodes.append('circle').attr('fill', function(d) {
     return networkGraph.color(d.type || d.id);
   }).attr('r', 8);
 
   networkGraph.nodes.append('text').text(function(d) {
-    return d.title || d.id;
-  });
+    return d.name || d.type || d.id;
+  }).attr('y', '0.5em');
+
+  networkGraph.nodes.on('click', networkGraph.click);
 
   networkGraph.links = networkGraph.links.data(githubModel.network.links, function(d) {
     return d.source.id + '-' + d.target.id;
@@ -163,6 +170,16 @@ networkGraph.update = function() {
 
 d3.select(window).on('load', networkGraph.update);
 
+networkGraph.click = function(node) {
+  if (d3.event.shiftKey && node.html_url)
+    return setTimeout(function() {
+      open(node.html_url, '_new');
+    }, 2E2);
+
+  // TODO: "expand" data
+  console.info(node);
+};
+
 // https://help.github.com/articles/search-syntax/
 networkGraph.search = function(text) {
   githubModel.clear();
@@ -176,12 +193,13 @@ networkGraph.search = function(text) {
 
 // doesn't work w/ d3js - why?
 window.addEventListener('load', function() {
+  var input = document.querySelector('[role=search]>input[type=text]');
   var timeout = null;
-  document.querySelector('form[role=search]').addEventListener('submit', function() {
+  input.addEventListener('keyup', function() {
     clearTimeout(timeout);
     timeout = setTimeout(function() {
-      var query = document.querySelector('form[role=search] input[type=text]').value.trim();
-      if (query.length > 1) networkGraph.search(query);
+      var query = input.value.trim();
+      if (query.length > 2) networkGraph.search(query);
     }, 1E3);
   });
 });
