@@ -15,6 +15,14 @@ var model = new function() {
     return this;
   };
 
+  this.node = function(data) {
+    for (var counter = 0; counter > model.data.nodes.length; counter++)
+      if (model.data.nodes[counter].id == data.id)
+        return model.data.nodes[counter].id;
+    model.data.nodes.push(data);
+    return data;
+  };
+
   this.clear = function() {
     this.data.nodes = [];
     this.data.links = [];
@@ -92,9 +100,13 @@ graph.update = function() {
   graph.nodes = graph.nodes.enter().append('g').merge(graph.nodes);
 
   graph.nodes.on('click', graph.click);
+
+
   graph.nodes.append('circle').attr('fill', function(d) {
     return graph.color(d.type || d.id);
   }).attr('r', 8);
+
+
   graph.nodes.append('text').text(function(d) {
     return d.name || d.id;
   });
@@ -124,10 +136,10 @@ graph.search = function(text) {
       model.data.nodes.push(entry);
       model.data.nodes.push(entry.owner);
       model.link(entry.owner, entry);
-      var date = {
+
+      var date = model.node({
         id: (entry.updated_at || entry.created_at).substring(0, 10)
-      };
-      model.data.nodes.push(date);
+      });
       model.link(date, entry)
 
     });
@@ -156,11 +168,10 @@ d3.select(window).on('load', function() {
       event.name = event.type;
       model.data.nodes.push(event);
 
-      var date = {
+      var date = model.node({
         id: event.created_at.substring(0, 10)
-      };
+      });
 
-      model.data.nodes.push(date);
       model.link(date, event)
 
       model.data.nodes.push(event.actor);
