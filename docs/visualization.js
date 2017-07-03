@@ -18,6 +18,7 @@ var model = new function() {
   this.clear = function() {
     this.data.nodes = [];
     this.data.links = [];
+    return this;
   };
 
   this.link = function(a, b) {
@@ -109,7 +110,7 @@ graph.update = function() {
   graph.layout.alpha(1).restart();
 };
 
-graph.update();
+window.addEventListener('load', graph.update);
 
 // https://help.github.com/articles/search-syntax/
 graph.search = function(text) {
