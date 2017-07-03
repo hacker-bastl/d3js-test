@@ -33,21 +33,26 @@ var model = new function() {
 // https://bl.ocks.org/mbostock/1095795 / GPLv3
 
 var graph = new function() {
+
   var root = d3.select('svg').attr('x', 0).attr('y', 0).attr('width', window.innerWidth).attr('height', window.innerHeight);
   var canvas = root.append('g').attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')');
+
   d3.select(window).on('resize', function() {
     canvas.attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')');
     // TODO: get and set zoom here!?
     root.attr('width', window.innerWidth).attr('height', window.innerHeight);
   });
+
   this.links = canvas.selectAll('line');
   this.nodes = canvas.selectAll('g');
   this.color = d3.scaleOrdinal(d3.schemeCategory10);
+
   // https://github.com/d3/d3-zoom#zoom
   root.call(d3.zoom().scaleExtent([0.2, 2.0]).on('zoom', function() {
     canvas.attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')' +
       ' scale(' + d3.event.transform.k + ')');
   }));
+
   // https://github.com/d3/d3-force/#forceSimulation
   this.layout = d3.forceSimulation(model.data.nodes)
     .force('x', d3.forceX()).force('y', d3.forceY()).alphaTarget(1)
@@ -73,10 +78,12 @@ var graph = new function() {
 };
 
 graph.click = function(node) {
-  if (d3.event.shiftKey) return model.remove(node);
+  if (d3.event.shiftKey)
+    return model.remove(node);
   console.info(node);
 };
 
+// https://bl.ocks.org/mbostock/3808218
 graph.update = function() {
   graph.nodes = graph.nodes.data(model.data.nodes, function(d) {
     return d.id;
