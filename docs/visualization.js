@@ -110,7 +110,7 @@ graph.update = function() {
   graph.layout.alpha(1).restart();
 };
 
-window.addEventListener('load', graph.update);
+d3.select(window).on('load', graph.update);
 
 // https://help.github.com/articles/search-syntax/
 graph.search = function(text) {
@@ -118,6 +118,8 @@ graph.search = function(text) {
   graph.update();
   d3.json('//api.github.com/search/repositories?q=' + text, function(error, code) {
     if (!!error) throw error;
+
+    // TODO: extract parser
     code.items.forEach(function(entry) {
       model.data.nodes.push(entry);
       model.data.nodes.push(entry.owner);
@@ -133,7 +135,7 @@ graph.search = function(text) {
   });
 };
 
-window.addEventListener('load', function() {
+d3.select(window).on('load', function() {
   var timeout = null;
   document.querySelector('form[role=search]').addEventListener('submit', function() {
     clearTimeout(timeout);
@@ -144,9 +146,11 @@ window.addEventListener('load', function() {
   });
 });
 
-window.addEventListener('load', function() {
+d3.select(window).on('load', function() {
   d3.json('//api.github.com/events', function(error, events) {
     if (!!error) throw error;
+
+    // TODO: extract parser
     events.forEach(function(event) {
 
       event.name = event.type;
