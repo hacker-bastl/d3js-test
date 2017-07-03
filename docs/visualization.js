@@ -28,10 +28,12 @@ var githubModel = {
     var connection = {
       source: githubModel.unique(data),
       connect: function(other) {
-        githubModel.network.links.push({
-          target: githubModel.unique(other),
-          source: connection.source,
-        });
+        if (!!other)
+          githubModel.network.links.push({
+            target: githubModel.unique(other),
+            source: connection.source,
+          });
+        else console.warn(other); // TODO
         return connection;
       },
     };
@@ -55,6 +57,7 @@ var githubModel = {
     });
 
     repo.connect(data.owner);
+    return repo;
   },
 
   event: function(data) {
@@ -64,14 +67,12 @@ var githubModel = {
       id: (data.updated_at || data.created_at).substring(0, 10),
     });
 
-    if (!!data.actor)
-      event.connect(data.actor);
-    if (!!data.repo)
-      event.connect(data.repo);
-    if (!!data.org)
-      event.connect(data.org);
+    event.connect(data.actor);
+    event.connect(data.repo);
+    event.connect(data.org);
     //    if (!!data.payload)
     //      event.connect(data.payload);
+    return event;
   },
 };
 
@@ -80,16 +81,16 @@ var networkGraph = new function() {
 
   var root = d3.select('svg').attr('x', 0).attr('y', 0).attr('width', window.innerWidth).attr('height', window.innerHeight);
   var canvas = root.append('g').attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')');
-  var zoon = 1; // TODO: smells...
+  var zoom = 1; // TODO: smells...
+
+  this.links = canvas.selectAll('line');
+  this.nodes = canvas.selectAll('g');
+  this.color = d3.scaleOrdinal(d3.schemeCategory10);
 
   d3.select(window).on('resize', function() {
     canvas.attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ') scale(' + zoom + ')');
     root.attr('width', window.innerWidth).attr('height', window.innerHeight);
   });
-
-  this.links = canvas.selectAll('line');
-  this.nodes = canvas.selectAll('g');
-  this.color = d3.scaleOrdinal(d3.schemeCategory10);
 
   // https://github.com/d3/d3-zoom#zoom
   root.call(d3.zoom().scaleExtent([0.2, 2.0]).on('zoom', function() {
@@ -176,12 +177,13 @@ networkGraph.search = function(text) {
 
 // doesn't work w/ d3js - why?
 window.addEventListener('load', function() {
+  var input = document.querySelector('[role=search]>input[type=text]');
   var timeout = null;
-  document.querySelector('form[role=search]').addEventListener('submit', function() {
+  input.addEventListener('keyup', function() {
     clearTimeout(timeout);
     timeout = setTimeout(function() {
-      var query = document.querySelector('form[role=search] input[type=text]').value.trim();
-      if (query.length > 1) networkGraph.search(query);
+      var query = input.value.trim();
+      if (query.length > 2) networkGraph.search(query);
     }, 1E3);
   });
 });
