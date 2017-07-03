@@ -30,11 +30,7 @@
       a:hover { text-decoration: underline; }
 
       svg g { cursor: pointer; }
-
-      svg circle, svg line {
-        stroke-width: 1.5px;
-      }
-
+      svg circle, svg line { stroke-width: 1.5px; }
       svg line { stroke: #999; }
       svg circle { stroke: #fff; }
 
@@ -59,6 +55,7 @@
       footer { font-size: smaller; }
 
       input {
+        filter: grayscale(100%);
         border: 1px solid #999;
         padding: 0 1em 0 1em;
         width: 16em;
@@ -69,7 +66,7 @@
   <body>
     <header role="search">
 
-      <input name="search" placeholder="search?" type="text"></input>
+      <input name="search" placeholder=" &#x1F50D; " type="text"></input>
 
     </header>
     <main role="main">
@@ -86,7 +83,7 @@
     </main>
     <footer>
 
-      <a title="location.reload( true )" href="#" onclick="javascript:location.reload(true);">reload</a>
+      <a title="location.reload(true);" href="#" onclick="javascript:location.reload(true);">reload</a>
       | <a title="github.com/hacker-bastl" href="https://github.com/hacker-bastl/git-api-d3js-test#readme">documentation</a>
       | <a title="twitter.com/macbastl" href="https://twitter.com/macbastl">feedback</a>
 
