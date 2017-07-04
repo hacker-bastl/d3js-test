@@ -1,3 +1,5 @@
-<kbd><img src="https://hacker-bastl.github.io/git-api-d3js-test/git-api-d3js-test.firefox.png?v0.0.3" width="240" /></kbd> <kbd><img src="https://hacker-bastl.github.io/git-api-d3js-test/git-api-d3js-test.safari.png?v0.0.3" width="240" /></kbd> <kbd><img src="https://hacker-bastl.github.io/git-api-d3js-test/git-api-d3js-test.chrome.png?v0.0.3" width="240" /></kbd>
+## github network graph
 
-:construction: [playing around](https://hacker-bastl.github.io/git-api-d3js-test/) with [the D3 force layout](https://github.com/d3/d3-force/#d3-force) and [the GitHub APIs](https://developer.github.com/v3/git/) (note [D3](https://github.com/d3) is [BSD3 license](https://github.com/d3/d3/blob/master/LICENSE))
+<kbd><img src="https://hacker-bastl.github.io/d3js-test/examples/d3js-test.v.0.0.3.firefox.png" width="240" /></kbd> <kbd><img src="https://hacker-bastl.github.io/d3js-test/examples/d3js-test.v.0.0.3.safari.png" width="240" /></kbd> <kbd><img src="https://hacker-bastl.github.io/d3js-test/examples/d3js-test.v.0.0.3.chrome.png" width="240" /></kbd>
+
+:link: [Interactive network graph](https://hacker-bastl.github.io/d3js-test/d3js-network-github-api.html) of [GitHub API data](https://developer.github.com/v3/git) using [the D3(v4) force layout](https://github.com/d3/d3-force/#d3-force)

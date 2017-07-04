@@ -148,7 +148,13 @@ networkGraph.updateData = function(displayData) {
       case 'Repository':
       case 'Organization':
         return '//assets-cdn.github.com/images/icons/emoji/unicode/1f465.png';
+      case 'Date':
+        return '//assets-cdn.github.com/images/icons/emoji/unicode/1f4c6.png';
+      case 'Repository':
+        return '//assets-cdn.github.com/images/icons/emoji/unicode/1f4c2.png';
       default:
+        if (d.type.endsWith('Event'))
+          return '//assets-cdn.github.com/images/icons/emoji/unicode/270f.png'; // EDIT
         return '//assets-cdn.github.com/images/icons/emoji/octocat.png';
     }
   }).attr('x', function(d, i) {
