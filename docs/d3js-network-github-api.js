@@ -178,7 +178,7 @@ networkGraph.updateData = function() {
     });
 
   // TODO: text often unreadable - improve how?
-  networkGraph.nodes.append('a')
+  networkGraph.nodes.append('a') //.attr('y', '1.5em')
     .attr('target', '_new').attr('xlink:href', function(d) {
       return !!d.html_url ? d.html_url : '#';
     }).attr('xlink:title', function(d) {
@@ -206,22 +206,35 @@ networkGraph.updateData = function() {
 networkGraph.click = function(node) {
   if (!!node.url) d3.json(node.url, function(error, response) {
     if (!!error) throw error;
-    console.info(node); // debugging...
+    console.info(response); // debugging...
 
+    var append = githubModel.connectNode(response);
     if (!!response.repos_url)
       d3.json(response.repos_url, function(error, response) {
         if (!!error) throw error;
         console.log(response);
+
+        response.slice(0, 8).forEach(append.connect);
+        networkGraph.updateData();
+
       });
     if (!!response.organizations_url)
       d3.json(response.organizations_url, function(error, response) {
         if (!!error) throw error;
         console.log(response);
+
+        response.slice(0, 8).forEach(append.connect);
+        networkGraph.updateData();
+
       });
     if (!!response.events_url)
       d3.json(response.events_url.split('{').shift(), function(error, response) {
         if (!!error) throw error;
         console.log(response);
+
+        response.slice(0, 8).forEach(append.connect);
+        networkGraph.updateData();
+
       });
 
   });
