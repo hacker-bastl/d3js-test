@@ -214,9 +214,11 @@ networkGraph.click = function(node) {
         });
 
       // TODO ...
+      break;
 
     default:
       if (!!node.url) d3.json(node.url, function(response) {
+        // networkGraph.click(response);
         console.log(response); // TODO
       });
   }
