@@ -9,17 +9,12 @@ const githubModel = {
 
   // TODO: refactor, this is redundant w/ d3 data model
   uniqueNode: function(data, type) {
-    if (!data.id) {
-      console.warn(data);
-      console.error('data id missing');
-      data.id = String(Math.random()).slice(-8);
-    }
-
-    if (!!type) data.type = type;
-    if (!data.type) data.type = 'unknown';
+    if (!data.id) throw new Error('data id missing');
+    if (!data.type) data.type = type || 'unknown';
 
     if (githubModel.networkData.ids.has(data.id))
       return githubModel.networkData.ids.get(data.id);
+
     githubModel.networkData.ids.set(data.id, data);
     githubModel.networkData.nodes.push(data);
     return data;
@@ -63,46 +58,41 @@ const githubModel = {
 
 // TODO: how to abstract this properly?
 githubModel.repository = function(data) {
-  var repo = githubModel.connectNode(data, 'repo');
+  var repo = githubModel.connectNode(data, 'Repository');
   repo.timestamp(data.updated_at || data.created_at);
+
   data.owner.name = data.owner.login;
   repo.connect(data.owner, 'user');
+
   return repo;
 };
 
 // TODO: how to abstract this properly?
 githubModel.event = function(data) {
-  var event = githubModel.connectNode(data, 'event');
+  var event = githubModel.connectNode(data, 'Event');
   event.timestamp(data.updated_at || data.created_at);
 
-  // TODO: refactur / extract to own parsers
-  if (!!data.actor) {
-    data.actor.name = data.actor.login;
-    event.connect(data.actor, 'user');
-  }
-  if (!!data.org) {
-    data.org.name = data.org.login;
-    event.connect(data.org, 'orga');
-  }
-  if (!!data.repo)
-    event.connect(data.repo, 'repo');
-  //    if (!!data.payload)
-  //      event.connect(data.payload);
+  // TODO: refactur / extract to own parsers?
+  if (!!data.actor) event.connect(data.actor, 'User');
+  if (!!data.org) event.connect(data.org, 'Organization');
+  if (!!data.repo) event.connect(data.repo, 'Repository');
+  // if (!!data.payload) event.connect(data.payload); // TODO
   return event;
 };
 
-// https://bl.ocks.org/mbostock/1095795 / GPLv3
+// graph with automated resizing and zoom
 const networkGraph = new function() {
+  // https://bl.ocks.org/mbostock/1095795
   var root = d3.select('svg').attr('x', 0).attr('y', 0).attr('width', window.innerWidth).attr('height', window.innerHeight);
   var canvas = root.append('g').attr('transform', 'translate(' + window.innerWidth / 2 + ',' + window.innerHeight / 2 + ')');
-  var zoom = 1; // TODO: smells...
-
-  // public data pointers to graph data
-  this.links = canvas.selectAll('line');
-  this.nodes = canvas.selectAll('g');
+  var zoom = 1; // TODO: smells?
 
   // http://bl.ocks.org/aaizemberg/78bd3dade9593896a59d
-  this.color = d3.scaleOrdinal(d3.schemeCategory20c);
+  this.color = d3.scaleOrdinal(d3['schemeCategory20c']);
+
+  // persistent pointers to graph data
+  this.links = canvas.selectAll('line');
+  this.nodes = canvas.selectAll('g');
 
   // update overall transformation on resize
   d3.select(window).on('resize', function() {
@@ -141,82 +131,118 @@ networkGraph.layout = d3.forceSimulation(githubModel.networkData.nodes)
   });
 
 // https://bl.ocks.org/mbostock/3808218
-networkGraph.update = function() {
-  networkGraph.nodes = networkGraph.nodes.data(githubModel.networkData.nodes, function(d) {
+networkGraph.updateData = function(displayData) {
+  networkGraph.nodes = networkGraph.nodes.data(displayData.nodes, function(d) {
     return d.id;
   });
   networkGraph.nodes.exit().remove();
   networkGraph.nodes = networkGraph.nodes.enter().append('g').merge(networkGraph.nodes);
 
-  // TODO: use avatar instead?
-  networkGraph.nodes.append('circle').attr('fill', function(d) {
-    return networkGraph.color(d.type || d.id);
-  }).attr('r', 8);
+  // TODO: smells - refactor!
+  networkGraph.nodes.append('image').attr('xlink:href', function(d, i) {
+    if (d.has_avatar = !!d.avatar_url)
+      return d.avatar_url;
+    else switch (d.type) {
+      case 'User':
+        return '//assets-cdn.github.com/images/icons/emoji/unicode/1f464.png';
+      case 'Repository':
+      case 'Organization':
+        return '//assets-cdn.github.com/images/icons/emoji/unicode/1f465.png';
+      default:
+        return '//assets-cdn.github.com/images/icons/emoji/octocat.png';
+    }
+  }).attr('x', function(d, i) {
+    return !!d.has_avatar ? -32 : -16;
+  }).attr('y', function(d, i) {
+    return !!d.has_avatar ? -32 : -16;
+  }).attr('width', function(d, i) {
+    return !!d.has_avatar ? 64 : 32;
+  }).attr('height', function(d, i) {
+    return !!d.has_avatar ? 64 : 32;
+  });
 
   // TODO: use title as well / instead?
   networkGraph.nodes.append('text').text(function(d) {
-    return d.name || d.type || d.id;
-  }).attr('y', '0.5em');
+    return d.name || d.login || d.type || d.id;
+  }).attr('y', '1.2em');
 
   // hook up onclick eventhandler
   networkGraph.nodes.on('click', networkGraph.click);
 
   // update links
-  networkGraph.links = networkGraph.links.data(githubModel.networkData.links, function(d) {
+  networkGraph.links = networkGraph.links.data(displayData.links, function(d) {
     return d.source.id + '-' + d.target.id;
   });
   networkGraph.links.exit().remove();
   networkGraph.links = networkGraph.links.enter().insert('line', 'g').merge(networkGraph.links);
   // restart layoput
-  networkGraph.layout.nodes(githubModel.networkData.nodes);
-  networkGraph.layout.force('link').links(githubModel.networkData.links);
+  networkGraph.layout.nodes(displayData.nodes);
+  networkGraph.layout.force('link').links(displayData.links);
   networkGraph.layout.alpha(1).restart();
 };
 
 // initial layout start
-d3.select(window).on('load', networkGraph.update);
+d3.select(window).on('load', function() {
+  networkGraph.updateData(githubModel.networkData);
+});
 
-// TODO: use onhover options instead?
+// https://developer.mozilla.org/docs/Web/API/Window/open
 networkGraph.click = function(node) {
-  if (d3.event.shiftKey && !!node.html_url)
-    return setTimeout(function() {
-      open(node.html_url, '_new');
-    }, 2E2);
+  // TODO: use "real" SVG link instead...
+  if (d3.event.shiftKey) {
+    var address = node.html_url || node.url || false;
+    if (!!address) location.href = address;
+  }
 
   // TODO: "expand" data
+  if (!!node.url) d3.json(node.url, function(response) {
+    console.log(response); // TODO
+  });
+
+  // for debugging...
   console.info(node);
 };
 
 // https://help.github.com/articles/search-syntax/
 networkGraph.search = function(text) {
   githubModel.clearContents();
-  networkGraph.update();
+  networkGraph.updateData(githubModel.networkData);
   d3.json('//api.github.com/search/repositories?q=' + text, function(error, result) {
     if (!!error) throw error;
     result.items.forEach(githubModel.repository);
-    networkGraph.update();
+    networkGraph.updateData(githubModel.networkData);
   });
 };
 
-// https://developer.github.com/v3/activity/events/#list-public-events
 d3.select(window).on('load', function() {
-  d3.json('//api.github.com/events', function(error, events) {
+
+  // https: //developer.github.com/v3/repos/commits/#list-commits-on-a-repository
+  d3.json('//api.github.com/repos/hacker-bastl/git-api-d3js-test/commits?per_page=1', function(error, response) {
+    if (!!error) throw error;
+    var serverTime = new Date(response.shift().commit.committer.date);
+    var localTime = new Date(serverTime.getTime() - serverTime.getTimezoneOffset() * 60 * 1E3).toJSON().replace(/[TZ]+/g, ' ');
+    console.log('code updated on ' + localTime);
+    document.title += ' ' + localTime;
+  });
+
+  // https://developer.github.com/v3/activity/events/#list-public-events
+  d3.json('//api.github.com/events?per_page=16', function(error, events) {
     if (!!error) throw error;
     events.forEach(githubModel.event);
-    networkGraph.update();
+    networkGraph.updateData(githubModel.networkData);
   });
 });
 
 // d3.select(window).on doesn't work here - why?
 window.addEventListener('load', function() {
-  var input = document.querySelector('[role=search]>input[type=text]');
-  var timeout = null;
-  input.addEventListener('keyup', function() {
-    clearTimeout(timeout);
-    timeout = setTimeout(function() {
-      var query = input.value.trim();
+  var inputNode = document.querySelector('[role=search]>input[type=text]');
+  var inputDelay = null;
+  inputNode.addEventListener('keyup', function() {
+    clearTimeout(inputDelay);
+    inputDelay = setTimeout(function() {
+      var query = inputNode.value.trim();
       if (query.length > 2)
         networkGraph.search(query);
-    }, 1E3);
+    }, 2E3);
   });
 });

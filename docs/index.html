@@ -31,7 +31,7 @@
 
       svg g { cursor: pointer; }
       svg circle, svg line { stroke-width: 1.5px; }
-      svg line { stroke: #999; }
+      svg line { stroke: #bbb; }
       svg circle { stroke: #fff; }
 
       svg text {
@@ -43,10 +43,11 @@
       }
 
       header, footer {
+        background-color: #eee;
+        padding: 0.5em 0 0.5em 0;
         position: absolute;
         text-align: center;
         width: 100%;
-        margin: 1em;
       }
 
       header { top: 0px; }
@@ -55,6 +56,7 @@
       footer { font-size: smaller; }
 
       input {
+        border-radius: 2px;
         filter: grayscale(100%);
         border: 1px solid #999;
         padding: 0 1em 0 1em;
@@ -67,7 +69,10 @@
   <body>
     <header role="search">
 
-      <input name="search" placeholder=" &#x1F50D; " type="text"></input>
+      <input name="search" placeholder=" &#x1F50D; "
+        autocomplete="off" autocapitalize="off"
+        autocorrect="off" spellcheck="false"
+        type="text"></input>
 
     </header>
     <main role="main">
@@ -82,7 +87,7 @@
         type="text/javascript"></script>
 
     </main>
-    <footer>
+    <footer role="navigation">
 
       <a title="location.reload(true);" href="#" onclick="javascript:location.reload(true);">reload</a>
       | <a title="github.com/hacker-bastl" href="https://github.com/hacker-bastl/git-api-d3js-test#readme">documentation</a>
