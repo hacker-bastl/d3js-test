@@ -188,6 +188,9 @@ d3.select(window).on('load', function() {
 
 // https://developer.mozilla.org/docs/Web/API/Window/open
 networkGraph.click = function(node) {
+  // for debugging...
+  console.info(node);
+
   // TODO: use "real" SVG link instead...
   if (d3.event.shiftKey) {
     var address = node.html_url || node.url || false;
@@ -195,12 +198,28 @@ networkGraph.click = function(node) {
   }
 
   // TODO: "expand" data
-  if (!!node.url) d3.json(node.url, function(response) {
-    console.log(response); // TODO
-  });
+  switch (node.type) {
+    case 'User':
+      if (!!node.repos_url)
+        d3.json(node.repos_url, function(response) {
+          console.log(response);
+        });
+      if (!!node.organizations_url)
+        d3.json(node.organizations_url, function(response) {
+          console.log(response);
+        });
+      if (!!node.events_url)
+        d3.json(node.events_url, function(response) {
+          console.log(response);
+        });
 
-  // for debugging...
-  console.info(node);
+      // TODO ...
+
+    default:
+      if (!!node.url) d3.json(node.url, function(response) {
+        console.log(response); // TODO
+      });
+  }
 };
 
 // https://help.github.com/articles/search-syntax/
