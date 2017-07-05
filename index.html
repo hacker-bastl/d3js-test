@@ -15,6 +15,7 @@
 
       // load script from url passed as parameter in url
       ( function( scriptNode ) {
+        var document.createElement( 'script' );
         scriptNode.setAttribute( 'type', 'text/javascript' );
         // redirect to documentation if script cannot be loaded
         scriptNode.addEventListener( 'error', function() {
@@ -27,14 +28,14 @@
         document.head.appendChild( scriptNode );
         // soft reload if another script hass been requested
         window.addEventListener( 'hashchange', function() { location.reload(); } );
-      } )( document.createElement( 'script' ) );
+      } )();
 
     </script>
     <noscript>
       <meta http-equiv="refresh" content="0; url=//github.com/hacker-bastl/d3js-test#readme" />
     </noscript>
-    <link href="graph.css" media="all" rel="stylesheet">
-    <link href="form.css" media="all" rel="stylesheet">
+    <link href="graph.css" media="all" rel="stylesheet" />
+    <link href="form.css" media="all" rel="stylesheet" />
   </head>
   <body>
     <main role="main">
