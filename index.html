@@ -14,15 +14,15 @@
     <script type="text/javascript">
 
       // load script from url passed as parameter in url
-      ( function( scriptNode ) {
-        var document.createElement( 'script' );
+      ( function() {
+        var scriptNode = document.createElement( 'script' );
         scriptNode.setAttribute( 'type', 'text/javascript' );
+        // set name of requested script (minus ? or # in address)
+        scriptNode.setAttribute( 'src', ( location.search + location.hash ).substring( 1 ) );
         // redirect to documentation if script cannot be loaded
         scriptNode.addEventListener( 'error', function() {
           location.replace( '//github.com/hacker-bastl/d3js-test#readme' );
         } );
-        // set name of requested script (minus ? or # in address)
-        scriptNode.setAttribute( 'src', ( location.search + location.hash ).substring( 1 ) );
         // delay start until page (css) loading is complete
         scriptNode.setAttribute( 'defer', 'defer' );
         document.head.appendChild( scriptNode );
