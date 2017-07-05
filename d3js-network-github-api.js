@@ -254,27 +254,25 @@ networkGraph.search = function(text) {
   });
 };
 
-// https://developer.github.com/v3/activity/events/#list-public-events
-d3.select(window).on('load', function() {
-  networkGraph.updateData();
-  d3.json('//api.github.com/events?per_page=16', function(error, events) {
-    if (!!error) throw error;
+networkGraph.updateData();
 
-    events.forEach(githubModel.event);
-    networkGraph.updateData();
-  });
+// https://developer.github.com/v3/activity/events/#list-public-events
+d3.json('//api.github.com/events?per_page=16', function(error, events) {
+  if (!!error) throw error;
+
+  events.forEach(githubModel.event);
+  networkGraph.updateData();
 });
 
-// d3.select(window).on doesn't work here - why?
-window.addEventListener('load', function() {
-  const searchbox = {
-    node: document.querySelector('[role=search]>input[type=text]'),
-    delay: null,
-  };
+// hook up search input box - TODO: move this?
+(function(searchbox) {
   searchbox.node.addEventListener('keyup', function() {
     clearTimeout(searchbox.delay);
     searchbox.delay = setTimeout(function() {
       networkGraph.search(searchbox.node.value.trim());
     }, 2E3);
   });
+})({
+  node: document.querySelector('[role=search]>input[type=text]'),
+  delay: null,
 });
