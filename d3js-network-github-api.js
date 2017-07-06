@@ -264,15 +264,17 @@ d3.json('//api.github.com/events?per_page=16', function(error, events) {
   networkGraph.updateData();
 });
 
-// hook up search input box - TODO: move this?
-(function(searchbox) {
-  searchbox.node.addEventListener('keyup', function() {
-    clearTimeout(searchbox.delay);
-    searchbox.delay = setTimeout(function() {
-      networkGraph.search(searchbox.node.value.trim());
-    }, 2E3);
-  });
-})({
+// search on change of text in input box (and throttle user input)
+networkGraph.input = {
   node: document.querySelector('[role=search]>input[type=text]'),
-  delay: null,
-});
+  delay: setTimeout(function() {
+    if (!!networkGraph.input.node)
+      networkGraph.input.node.addEventListener('keyup', function() {
+        window.clearTimeout(networkGraph.input.delay);
+        var searchterm = networkGraph.input.node.value.trim();
+        networkGraph.input.delay = window.setTimeout(function() {
+          networkGraph.search(searchterm);
+        }, 2E3);
+      });
+  }, 2E3),
+};
