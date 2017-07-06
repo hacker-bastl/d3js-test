@@ -17,8 +17,8 @@
       ( function() {
         var scriptNode = document.createElement( 'script' );
         scriptNode.setAttribute( 'type', 'text/javascript' );
-        // set name of requested script (minus ? or # in address)
-        scriptNode.setAttribute( 'src', ( location.search + location.hash ).substring( 1 ) );
+        // set name of requested script (minus ? in address)
+        scriptNode.setAttribute( 'src', location.search.substring( 1 ) );
         // redirect to documentation if script cannot be loaded
         scriptNode.addEventListener( 'error', function() {
           location.replace( '//github.com/hacker-bastl/d3js-test#readme' );
@@ -26,8 +26,6 @@
         // delay start until page (css) loading is complete
         scriptNode.setAttribute( 'defer', 'defer' );
         document.head.appendChild( scriptNode );
-        // soft reload if another script hass been requested
-        window.addEventListener( 'hashchange', function() { location.reload(); } );
       } )();
 
     </script>
