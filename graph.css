@@ -9,22 +9,28 @@ body, svg {
   border: 0px;
 }
 
-svg g {
-  cursor: pointer;
+svg circle {
+  stroke-width: 2.0px;
+  stroke: #fff;
+  fill: #fff;
 }
 
-svg circle, svg line {
-  stroke-width: 0.8px;
+svg line {
+  stroke-width: 1.0px;
   stroke: #bbb;
 }
 
 svg text {
   text-anchor: middle;
-  stroke-width: 0.4px;
+  stroke-width: 0px;
   stroke: #fff;
   fill: #000;
 }
 
-svg a {
+svg g {
+  cursor: pointer;
+}
+
+svg a text {
   y: 3em;
 }
